@@ -1,5 +1,5 @@
 
-target board = arti 7 100-T
+target board = artix 7 100-T
 
 currently getting too many false positive (relative to model predictions)
 
