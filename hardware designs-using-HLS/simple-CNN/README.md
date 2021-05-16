@@ -1,6 +1,8 @@
+***INCOMPLETE***
 ==================================================================
-***incomplete***
 synthesizable code altho suffers from II violations, will fix soon.
+
+
 Layer (type)                 Output Shape              Param #   
 =================================================================
 conv2d_14 (Conv2D)           (None, 13, 13, 32)        320       
