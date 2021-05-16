@@ -1,3 +1,4 @@
+***incomplete***
 synthesizable code altho suffers from II violations, will fix soon.
 Layer (type)                 Output Shape              Param #   
 =================================================================
