@@ -5591,11 +5591,46 @@ void model(float data[1][28][28], int *dout)
 	float res3[5408];
 	float res4[10][10];
 	float res5[10];
-
+	float middle1[32][26][26];
+	float middle2[32][13][13];
+	float middle3[5408];
+	float middle4[10][10];
+	int loop[10];
 	Conv2D_ReLU((float* )data,1,28,28,26,26,32,3,3,1,1,(float *) conv_l1_weights,(float *) conv_l1_biases,(float *)res1);
-	MaxPool2D((float * )res1,32,26,26,13,13,2,2,2,2,(float *)res2);
-	Flatten((float *)res2,32,13,13,(float *)res3);
-	FC_layer_ReLU((float *)res3,10,5408,(float *)relu_l1_weights,(float *)relu_l1_biases,(float *)res4);
-	FC_layer_softmax_predict((float *)res4,10,10,(float *)dense_soft_l2_weights,(float *)dense_soft_l2_biases,(int *)dout);
+	for(loop[0] = 0; loop[0] < 32; loop[0]++)
+	{
+		for(loop[1] = 0; loop[1] < 26; loop[1]++)
+		{
+			for(loop[2] = 0; loop[2] < 26; loop[2]++)
+			{
+				middle1[loop[0]][loop[1]][loop[2]] = res1[loop[0]][loop[1]][loop[2]];
+			}
+		}
+	}
+	MaxPool2D((float * )middle1,32,26,26,13,13,2,2,2,2,(float *)res2);
+	for(loop[3] = 0; loop[3] < 32; loop[3]++)
+		{
+			for(loop[4] = 0; loop[4] < 26; loop[4]++)
+			{
+				for(loop[5] = 0; loop[5] < 26; loop[5]++)
+				{
+					middle2[loop[3]][loop[4]][loop[5]] = res2[loop[3]][loop[4]][loop[5]];
+				}
+			}
+		}
+	Flatten((float *)middle2,32,13,13,(float *)res3);
+	for(loop[6] = 0; loop[6] < 5409; loop[6]++)
+	{
+		middle3[loop[6]] = res3[loop[6]];
+	}
+	FC_layer_ReLU((float *)middle3,10,5408,(float *)relu_l1_weights,(float *)relu_l1_biases,(float *)res4);
+	for(loop[7] = 0; loop[7] < 10; loop[7]++)
+	{
+		for(loop[8] = 0; loop[8] < 10; loop[8]++)
+		{
+			middle4[loop[7]][loop[8]] = res4[loop[7]][loop[8]];
+		}
+	}
+	FC_layer_softmax_predict((float *)middle4,10,10,(float *)dense_soft_l2_weights,(float *)dense_soft_l2_biases,(int *)dout);
 
 }

@@ -1,11 +1,15 @@
 #include<math.h>
 #ifndef  NN_LIBRARY_H_INCLUDED
 #define NN_LIBRARY_H_INCLUDED
-int i = 0,j = 0,out_x = 0, out_y = 0, filter_c = 0, filter_x = 0, filter_y = 0, channel_c = 0;
-float storetemp = 0;
+//int i = 0,j = 0,out_x = 0, out_y = 0, filter_c = 0, filter_x = 0, filter_y = 0, channel_c = 0;
+//float storetemp = 0;
 using namespace std;
+float conv_res[32][26][26];
+float maxpool_res[32][13][13];
+float flattened[5408];
 void FC_layer_ReLU(float *in_data,int in_dim1,int weight_dim2,float *weights,float *biases,float *out_data)
 {
+	int i = 0,j = 0;
     for(i = 0; i < in_dim1; i++)
     {
         for(j = 0; j < weight_dim2; j++)
@@ -31,7 +35,7 @@ void predict(float &in_val)
 }
 void FC_layer_sigmoid_predict(float *in_data,int dim,float *weights,float bias,float &out_data)
 {
-
+	int i = 0;
     for(i = 0; i < dim; i++)
     {
         out_data += weights[i]*in_data[i];
@@ -42,10 +46,16 @@ void FC_layer_sigmoid_predict(float *in_data,int dim,float *weights,float bias,f
 }
 void Conv2D_ReLU(float *in_data,int n_channels,int in_dim1,int in_dim2,int out_dim1, int out_dim2, int n_filters,int filter_dim_x,int filter_dim_y,int stridex, int stridey, float *filters_weights, float *filter_biases, float *conv_res)
 {
-	//float conv_res[n_filters][out_dim1][out_dim2];
+	//float conv_res_store[n_filters][out_dim1][out_dim2];
 	//int flag = 0;
 	int clk = 1;
-	for(filter_c = 0; filter_c < n_filters; filter_c++)
+	int filter_c,out_x,out_y,filter_x,filter_y,channel_c = 0;
+	int a,b,c;
+	float values[filter_dim_x*filter_dim_y*n_channels];
+	int counter;
+	float sum;
+	float final_sum;
+	Conv2D_ReLU_label0:for(filter_c = 0; filter_c < n_filters; filter_c++)
 	{
 		//flag = 1;
 
@@ -56,6 +66,9 @@ void Conv2D_ReLU(float *in_data,int n_channels,int in_dim1,int in_dim2,int out_d
 			{
 				//cout<<filter_c<<" "<<out_x<<" "<<out_y<<endl;
 				*(conv_res + (filter_c)*(out_dim1*out_dim2) + (out_x*out_dim2) + out_y) =0;
+				counter = 0;
+				sum = 0;
+				final_sum = 0;
 				for(filter_x = 0; filter_x < filter_dim_x; filter_x++)
 				{
 					for(filter_y = 0; filter_y < filter_dim_y; filter_y++)
@@ -71,8 +84,10 @@ void Conv2D_ReLU(float *in_data,int n_channels,int in_dim1,int in_dim2,int out_d
 							//*((in_data + ((channel_c)*(in_dim1*in_dim2)) + (stridex*out_x + filter_x)*(in_dim2) + (stridey*out_y + filter_y))) = clk;
 							//clk++;
 							//cout<<*(conv_res + (filter_c)*(out_dim1*out_dim2) + (out_x*out_dim2) + out_y)<<" ";
-							*(conv_res + (filter_c)*(out_dim1*out_dim2) + (out_x*out_dim2) + out_y) += (*((in_data + ((channel_c)*(in_dim1*in_dim2)) + (stridex*out_x + filter_x)*(in_dim2) + (stridey*out_y + filter_y)))) * (*(filters_weights + (filter_c*filter_dim_x*filter_dim_y) + ((filter_x)*(filter_dim_y)) + (filter_y)));
+							//*(conv_res + (filter_c)*(out_dim1*out_dim2) + (out_x*out_dim2) + out_y) += (*((in_data + ((channel_c)*(in_dim1*in_dim2)) + (stridex*out_x + filter_x)*(in_dim2) + (stridey*out_y + filter_y)))) * (*(filters_weights + (filter_c*filter_dim_x*filter_dim_y) + ((filter_x)*(filter_dim_y)) + (filter_y)));
+							values[counter] = (*((in_data + ((channel_c)*(in_dim1*in_dim2)) + (stridex*out_x + filter_x)*(in_dim2) + (stridey*out_y + filter_y)))) * (*(filters_weights + (filter_c*filter_dim_x*filter_dim_y) + ((filter_x)*(filter_dim_y)) + (filter_y)));
 							//cout<<*(conv_res + (filter_c)*(out_dim1*out_dim2) + (out_x*out_dim2) + out_y)<<endl;
+							counter++;
 						}
 					}
 					//if(filter_c == 1)
@@ -80,9 +95,15 @@ void Conv2D_ReLU(float *in_data,int n_channels,int in_dim1,int in_dim2,int out_d
 				}
 				//if(filter_c == 1)
 					//	cout<<endl;
-				*(conv_res + (filter_c)*(out_dim1*out_dim2) + (out_x*out_dim2) + out_y) += *(filter_biases + filter_c);
-				if(*(conv_res + (filter_c)*(out_dim1*out_dim2) + (out_x*out_dim2) + out_y) < 0)
-					*(conv_res + (filter_c)*(out_dim1*out_dim2) + (out_x*out_dim2) + out_y) = 0;
+				for(a = 0; a < counter; a++)
+				{
+					sum += values[a];
+				}
+				//*(conv_res + (filter_c)*(out_dim1*out_dim2) + (out_x*out_dim2) + out_y)
+				final_sum = sum + *(filter_biases + filter_c);
+				if(final_sum < 0)
+					final_sum = 0;
+				*(conv_res + (filter_c)*(out_dim1*out_dim2) + (out_x*out_dim2) + out_y) = final_sum;
 				/*if(filter_c == 1)
 				{
 					cout<<*(conv_res + (filter_c)*(out_dim1*out_dim2) + (out_x*out_dim2) + out_y)<<" ";
@@ -93,12 +114,14 @@ void Conv2D_ReLU(float *in_data,int n_channels,int in_dim1,int in_dim2,int out_d
 		}
 
 	}
-	//out_data = in_data;
+
 }
 void MaxPool2D(float *in_data,int n_channels,int in_dim1,int in_dim2,int out_dim1,int out_dim2,int sizex, int sizey,int stridex,int stridey,float *maxpool_res)
 {
 	//float maxpool_res[n_channels][out_dim1][out_dim2];
-	for(filter_c = 0; filter_c < n_channels; filter_c++)
+	float storetemp;
+	int filter_c,out_x,out_y,filter_x,filter_y;
+	MaxPool2D_label1:for(filter_c = 0; filter_c < n_channels; filter_c++)
 	{
 		for(out_x = 0; out_x < out_dim1; out_x++)
 		{
@@ -133,7 +156,8 @@ void MaxPool2D(float *in_data,int n_channels,int in_dim1,int in_dim2,int out_dim
 void Flatten(float *in_data,int n_channels,int dimx,int dimy,float *flattened)
 {
 	//float flattened[n_channels*dimx*dimy];
-	i = 0;
+	int i = 0;
+	int out_x,out_y,filter_c;
 	for(out_x = 0; out_x < dimx; out_x++)
 	{
 		for(out_y = 0; out_y < dimy; out_y++)
@@ -152,7 +176,9 @@ void FC_layer_softmax_predict(float *in_data,int in_dim1,int weight_dim2,float *
 {
 	float p_array[in_dim1];
 	float compare = 0;
+	float storetemp = 0;
 	storetemp = 0;
+	int i,j;
     for(i = 0; i < in_dim1; i++)
     {
     	*(p_array + i) = 0;
