@@ -10,3 +10,4 @@ Total params: 54,520
 Trainable params: 54,520
 Non-trainable params: 0
 
+performance comparison - Nvidia Tesla K80 - 35ms per frame, Xilinx Kintex 7 (xc7k420ti-ffg1156-2L) = 0.644us
